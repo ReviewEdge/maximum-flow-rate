@@ -4,7 +4,7 @@ import java.util.Queue;
 import java.util.Stack;
 
 public class DinicsFlowRate {
-    
+
     // Still making it look nice
     // But it does runs correctly
 
@@ -26,8 +26,11 @@ public class DinicsFlowRate {
         int maxFlow = 0;
         //Phase Loop
         while(true){
-            System.out.println("PhaseLoop");
-            if(!bfs(s,t)){
+//            System.out.println("PhaseLoop");
+            boolean bool = !bfs(s,t);
+            System.out.println(V);
+            System.out.println(E);
+            if(bool){
                 return maxFlow;
             }
             constructLayeredGraph();
@@ -45,9 +48,9 @@ public class DinicsFlowRate {
                 if(stk == null){
                     break;
                 }
-                System.out.println(stk);
+//                System.out.println(stk);
                 maxFlow += FlowChange(stk);
-                System.out.println(maxFlow);
+//                System.out.println(maxFlow);
 
                 //Cleaning Loop
                 while(sat.size() > 0){
@@ -152,6 +155,9 @@ public class DinicsFlowRate {
                 stk.push(L.get(e.end).get(0));
             }
             else{
+                if(e.start < 0) {
+                    return null;
+                }
                 L.get(e.start).remove(stk.pop());
                 LLength--;
             }
