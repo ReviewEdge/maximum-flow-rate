@@ -4,6 +4,7 @@ public class MaxFlowAlgorithms {
 
     public static void main(String[] args) {
 
+        /**
         ArrayList<Integer> V = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             V.add(0);
@@ -63,12 +64,43 @@ public class MaxFlowAlgorithms {
         System.out.println(E.toString());
         System.out.println(runDinics(V,E,1, size));
 
-        System.out.println();
-        timeDinics(10000, 10, 100);
+         System.out.println();
 
+         **/
+
+        System.out.println("Dinic's Ran in " + timeDinics(10000, 10, 100) + "s");
+
+        timeAlgorithms(100,10,5);
+        timeAlgorithms(100,50,5);
+        timeAlgorithms(100,100,5);
+
+        timeAlgorithms(1000,100, 3);
+        timeAlgorithms(1000,500,3);
+        timeAlgorithms(1000,1000,3);
+
+        timeAlgorithms(10000,100,1);
+        timeAlgorithms(10000,1000,1);
+        timeAlgorithms(10000,10000,1);
     }
 
-    public static void timeDinics(int size, int connectivity, int maxCapacity){
+    public static void timeAlgorithms(int size, int density, int repetitions){
+
+        float dt = 0;
+        float ekt = 0;
+        for(int i = 0; i < repetitions; i++){
+            ArrayList<ArrayList<Edge>> E = generateE(size, density, 100);
+            ArrayList<Integer> V = generateV(size);
+            dt += timeDinics(E,V,1,size);
+            //TimeEK
+        }
+        System.out.println("Dinic's for Size: " + size + ", Density: " + density);
+        System.out.println(dt/repetitions);
+//        System.out.println("Edmonds-Karp for Size: " + size + ", Density: " + density);
+//        System.out.println(ekt/repetitions);
+    }
+
+
+    public static float timeDinics(int size, int connectivity, int maxCapacity){
         ArrayList<ArrayList<Edge>> E = generateE(size,connectivity, maxCapacity);
         ArrayList<Integer> V = generateV(size);
 
@@ -76,8 +108,16 @@ public class MaxFlowAlgorithms {
         runDinics(V,E,1, size);
         float endTime = System.nanoTime();
 
-        System.out.println("Dinic's ran in " + (endTime - startTime)/1000000000 + "s");
+        return (endTime - startTime) / 1000000000;
+    }
 
+    public static float timeDinics(ArrayList<ArrayList<Edge>> E, ArrayList<Integer> V, int s, int t){
+
+        float startTime = System.nanoTime();
+        runDinics(V, E, s, t);
+        float endTime = System.nanoTime();
+
+        return (endTime - startTime) / 1000000000;
     }
 
 
@@ -106,6 +146,20 @@ public class MaxFlowAlgorithms {
         E = cleanGraph(E);
 
         return E;
+    }
+
+    public static ArrayList<ArrayList<Edge>> cloneGraph(ArrayList<ArrayList<Edge>> E){
+        ArrayList<ArrayList<Edge>> F = new ArrayList<>();
+        for(int i = 0; i <= E.size(); i++){
+            E.add(new ArrayList<>());
+        }
+
+        for(int i = 0; i <= E.size(); i++){
+            for(Edge e: E.get(i)){
+                F.get(i).add(new Edge(e.start, e.end, e.capacity));
+            }
+        }
+        return F;
     }
 
     public static ArrayList<ArrayList<Edge>> cleanGraph(ArrayList<ArrayList<Edge>> E){
@@ -150,3 +204,4 @@ public class MaxFlowAlgorithms {
         return "Dinic's Max Flow Rate: " + dmfr.maxFlowRate(s,t);
     }
 }
+
