@@ -1,0 +1,152 @@
+import java.util.*;
+
+public class MaxFlowAlgorithms {
+
+    public static void main(String[] args) {
+
+        ArrayList<Integer> V = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            V.add(0);
+        }
+
+        ArrayList<ArrayList<Edge>> E = new ArrayList<>();
+        for (int i = 0; i < V.size(); i++) {
+            E.add(new ArrayList<>());
+        }
+
+        //Dinic's wikipedia example
+        DinicsFlowRate.addEdge(E, new Edge(1, 2, 10));
+        DinicsFlowRate.addEdge(E, new Edge(1, 3, 10));
+        DinicsFlowRate.addEdge(E, new Edge(2, 3, 2));
+        DinicsFlowRate.addEdge(E, new Edge(2, 4, 4));
+        DinicsFlowRate.addEdge(E, new Edge(2, 5, 8));
+        DinicsFlowRate.addEdge(E, new Edge(3, 5, 9));
+        DinicsFlowRate.addEdge(E, new Edge(5, 4, 6));
+        DinicsFlowRate.addEdge(E, new Edge(4, 6, 10));
+        DinicsFlowRate.addEdge(E, new Edge(5, 6, 10));
+
+        DinicsFlowRate dmfr = new DinicsFlowRate(V,E);
+        System.out.println(dmfr.maxFlowRate(1,6));
+
+
+        V = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            V.add(0);
+        }
+
+        E = new ArrayList<>();
+        for (int i = 0; i < V.size(); i++) {
+            E.add(new ArrayList<>());
+        }
+
+        //EK's Wikipedia example
+        DinicsFlowRate.addEdge(E, new Edge(1,2,3));
+        DinicsFlowRate.addEdge(E, new Edge(2,3,4));
+        DinicsFlowRate.addEdge(E, new Edge(1,4,3));
+        DinicsFlowRate.addEdge(E, new Edge(3,1,3));
+        DinicsFlowRate.addEdge(E, new Edge(3,4,1));
+        DinicsFlowRate.addEdge(E, new Edge(3,5,2));
+        DinicsFlowRate.addEdge(E, new Edge(4,5,2));
+        DinicsFlowRate.addEdge(E, new Edge(4,6,6));
+        DinicsFlowRate.addEdge(E, new Edge(5,2,1));
+        DinicsFlowRate.addEdge(E, new Edge(5,7,1));
+        DinicsFlowRate.addEdge(E, new Edge(6,7,9));
+
+        DinicsFlowRate DEKmfr = new DinicsFlowRate(V,E);
+        System.out.println(DEKmfr.maxFlowRate(1,7));
+
+
+        System.out.println("Random: Dinics");
+        int size = 10;
+        E = generateE(size,4, 100);
+        V = generateV(size);
+        System.out.println(E.toString());
+        System.out.println(runDinics(V,E,1, size));
+
+        System.out.println();
+        timeDinics(10000, 10, 100);
+
+    }
+
+    public static void timeDinics(int size, int connectivity, int maxCapacity){
+        ArrayList<ArrayList<Edge>> E = generateE(size,connectivity, maxCapacity);
+        ArrayList<Integer> V = generateV(size);
+
+        float startTime = System.nanoTime();
+        runDinics(V,E,1, size);
+        float endTime = System.nanoTime();
+
+        System.out.println("Dinic's ran in " + (endTime - startTime)/1000000000 + "s");
+
+    }
+
+
+
+
+
+
+
+
+
+    public static ArrayList<ArrayList<Edge>> generateE(int size, int connectivity, int maxCapacity){
+        //Creating the adjacency list
+        ArrayList<ArrayList<Edge>> E = new ArrayList<>();
+        for(int i = 0; i <= size; i++){
+            E.add(new ArrayList<>());
+        }
+
+        //Saturating the Graph
+        for(int i = 1; i <= size; i++){
+            int edgeCount = (int)(Math.random()*connectivity) + 1;
+            for(int k = 0; k < edgeCount; k++){
+                DinicsFlowRate.addEdge(E, new Edge(i,(int)(Math.random()*size)+1, (int)(Math.random()*maxCapacity)+1));
+            }
+        }
+
+        E = cleanGraph(E);
+
+        return E;
+    }
+
+    public static ArrayList<ArrayList<Edge>> cleanGraph(ArrayList<ArrayList<Edge>> E){
+        for(ArrayList<Edge> list: E){
+            for(int i = 0; i < list.size(); i++){
+                Edge e = list.get(i);
+                for(Edge d: E.get(e.end)){
+                    if(d.end == e.start){
+                        if(d.capacity == e.capacity){
+                            E.get(d.start).remove(d);
+                            E.get(e.start).remove(e);
+                        }
+                        else if(d.capacity > e.capacity){
+                            d.capacity -= e.capacity;
+                            E.get(e.start).remove(e);
+                        }
+                        else{
+                            e.capacity -= d.capacity;
+                            E.get(d.start).remove(d);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        return E;
+    }
+
+    public static ArrayList<Integer> generateV(int size){
+        ArrayList<Integer> V = new ArrayList<>();
+        for (int i = 0; i <= size; i++) {
+            V.add(0);
+        }
+        return V;
+    }
+
+
+
+
+    public static String runDinics(ArrayList<Integer> V, ArrayList<ArrayList<Edge>> E, int s, int t){
+        DinicsFlowRate dmfr = new DinicsFlowRate(V,E);
+        return "Dinic's Max Flow Rate: " + dmfr.maxFlowRate(s,t);
+    }
+}
