@@ -1,6 +1,11 @@
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.lang.reflect.Array;
 import java.util.*;
 
 public class MaxFlowAlgorithms {
+
+    public static final int nanoScaling = 1000000;
 
     public static void main(String[] args) {
 
@@ -68,47 +73,92 @@ public class MaxFlowAlgorithms {
 
          **/
 
-        System.out.println("Dinic's Ran in " + timeDinics(10000, 10, 100) + "s");
+        StringBuilder outStrDinic = new StringBuilder("Size\\Density, 20%, 33%, 50%\n");
+        StringBuilder outStrEK = new StringBuilder("Size\\Density, 20%, 33%, 50%\n");
 
-        timeAlgorithms(100,10,5);
-        timeAlgorithms(100,50,5);
-        timeAlgorithms(100,100,5);
+        int size = 40;
+        for(int i = 0; i < 5; i++) {
+            ArrayList<String> output = new ArrayList<>();
+            size *= 2;
+            outStrDinic.append(size);
+            outStrEK.append(size);
 
-        timeAlgorithms(1000,100, 3);
-        timeAlgorithms(1000,500,3);
-        timeAlgorithms(1000,1000,3);
 
-        timeAlgorithms(10000,100,1);
-        timeAlgorithms(10000,1000,1);
-        timeAlgorithms(10000,10000,1);
+            output.add(timeAlgorithms(size, (size / 5), 5));
+            output.add(timeAlgorithms(size, (size / 3), 5));
+            output.add(timeAlgorithms(size, (size / 2), 5));
+            for(String s: output) {
+                String[] sArr = s.split(":");
+                outStrDinic.append(",").append(sArr[0]);
+                outStrEK.append(",").append(sArr[1]);
+            }
+            outStrDinic.append("\n");
+            outStrEK.append("\n");
+        }
+
+        try{
+            PrintWriter DPW = new PrintWriter("DinicsData.csv");
+            PrintWriter EKPW = new PrintWriter("EdmundsKarpData.csv");
+            DPW.print(outStrDinic.toString());
+            EKPW.print(outStrEK.toString());
+            DPW.flush();
+            DPW.close();
+            EKPW.flush();
+            EKPW.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+//        timeAlgorithms(10,2, 5);
+//        timeAlgorithms(10,3,5);
+//        timeAlgorithms(10,5,5);
+//
+//        timeAlgorithms(20,4, 5);
+//        timeAlgorithms(20,6,5);
+//        timeAlgorithms(20,10,5);
+//
+//        timeAlgorithms(40,8,5);
+//        timeAlgorithms(40,12,5);
+//        timeAlgorithms(40,20,5);
+//
+//        timeAlgorithms(80,16,5);
+//        timeAlgorithms(80,24,5);
+//        timeAlgorithms(80,40,5);
+//
+//        timeAlgorithms(160,32, 5);
+//        timeAlgorithms(160,48,5);
+//        timeAlgorithms(160,80,5);
+//
+//        timeAlgorithms(320,64, 5);
+//        timeAlgorithms(320,96,5);
+//        timeAlgorithms(320,160,5);
+//
+//        timeAlgorithms(640,128, 5);
+//        timeAlgorithms(640,192,5);
+//        timeAlgorithms(640,320,5);
+//
+//        timeAlgorithms(1280,256, 5);
+//        timeAlgorithms(1280,384,5);
+//        timeAlgorithms(1280,640,5);
     }
 
-    public static void timeAlgorithms(int size, int density, int repetitions){
+    public static String timeAlgorithms(int size, int density, int repetitions){
 
         float dt = 0;
         float ekt = 0;
         for(int i = 0; i < repetitions; i++){
             ArrayList<ArrayList<Edge>> E = generateE(size, density, 100);
             ArrayList<Integer> V = generateV(size);
+//            Edges[] paths = generatePaths(E);
             dt += timeDinics(E,V,1,size);
+//            ekt += timeEdmundsKarp(paths, 1, size, size);
             //TimeEK
         }
         System.out.println("Dinic's for Size: " + size + ", Density: " + density);
         System.out.println(dt/repetitions);
 //        System.out.println("Edmonds-Karp for Size: " + size + ", Density: " + density);
 //        System.out.println(ekt/repetitions);
-    }
-
-
-    public static float timeDinics(int size, int connectivity, int maxCapacity){
-        ArrayList<ArrayList<Edge>> E = generateE(size,connectivity, maxCapacity);
-        ArrayList<Integer> V = generateV(size);
-
-        float startTime = System.nanoTime();
-        runDinics(V,E,1, size);
-        float endTime = System.nanoTime();
-
-        return (endTime - startTime) / 1000000000;
+        return (dt/repetitions) + ":" + ekt/repetitions;
     }
 
     public static float timeDinics(ArrayList<ArrayList<Edge>> E, ArrayList<Integer> V, int s, int t){
@@ -117,16 +167,17 @@ public class MaxFlowAlgorithms {
         runDinics(V, E, s, t);
         float endTime = System.nanoTime();
 
-        return (endTime - startTime) / 1000000000;
+        return (endTime - startTime) / nanoScaling;
     }
 
-
-
-
-
-
-
-
+//    public static float timeEdmundsKarp(Edges[] paths, int s, int t, int vSize){
+//
+//        float startTime = System.nanoTime();
+//        EKsort(paths, s, t, vSize);
+//        float endTime = System.nanoTime();
+//
+//        return (endTime - startTime) / 1000000000;
+//    }
 
     public static ArrayList<ArrayList<Edge>> generateE(int size, int connectivity, int maxCapacity){
         //Creating the adjacency list
@@ -147,6 +198,22 @@ public class MaxFlowAlgorithms {
 
         return E;
     }
+
+//    public static Edges[] generatePaths(ArrayList<ArrayList<Edge>> E){
+//        int numEdges = 0;
+//        for(ArrayList<Edge> list: E){
+//            numEdges += list.size();
+//        }
+//        Edges[] paths = new Edges[numEdges];
+//
+//        int i = 0;
+//        for(ArrayList<Edge> list: E){
+//            for(Edge e: list){
+//                paths[i] = new Edges(e.start, e.end, e.capacity);
+//            }
+//        }
+//        return paths;
+//    }
 
     public static ArrayList<ArrayList<Edge>> cloneGraph(ArrayList<ArrayList<Edge>> E){
         ArrayList<ArrayList<Edge>> F = new ArrayList<>();
@@ -204,4 +271,3 @@ public class MaxFlowAlgorithms {
         return "Dinic's Max Flow Rate: " + dmfr.maxFlowRate(s,t);
     }
 }
-
