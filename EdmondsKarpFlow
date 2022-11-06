@@ -1,0 +1,130 @@
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.Queue;
+
+public class EdmondsKarp {
+	
+	public static void main(String[] args)
+	{
+		int[][] capacity = new int[7][7];
+		ArrayList<LinkedList<Integer>> neighbors = new ArrayList<LinkedList<Integer>>();
+		
+		capacity[0][1]=3;
+		capacity[0][3]=3;
+		capacity[1][2]=4;
+		capacity[2][1]=3;
+		capacity[2][3]=1;
+		capacity[2][4]=2;
+		capacity[3][5]=2;
+		capacity[3][5]=6;
+		capacity[4][6]=1;
+		capacity[4][1]=1;
+		capacity[5][6]=9;
+		
+		neighbors.add(new LinkedList<Integer>());
+		neighbors.add(new LinkedList<Integer>());
+		neighbors.add(new LinkedList<Integer>());
+		neighbors.add(new LinkedList<Integer>());
+		neighbors.add(new LinkedList<Integer>());
+		neighbors.add(new LinkedList<Integer>());
+		neighbors.add(new LinkedList<Integer>());
+		
+		neighbors.get(0).add(1);
+		neighbors.get(0).add(3);
+		neighbors.get(1).add(2);
+		neighbors.get(2).add(0);
+		neighbors.get(2).add(3);
+		neighbors.get(2).add(4);
+		neighbors.get(3).add(4);
+		neighbors.get(3).add(5);
+		neighbors.get(4).add(6);
+		neighbors.get(4).add(1);
+		neighbors.get(5).add(6);
+
+
+		System.out.println(EdmondsKarp(capacity,1,7,neighbors,7));
+	}
+	
+	public static int EdmondsKarp(int[][] capacity, int source, int dest, ArrayList<LinkedList<Integer>> neighbors, int numVert)
+	{
+		int flow = 0;
+		int[][] flowArray = new int[numVert][numVert];
+		int[] parents = new int[numVert];
+		
+		while(true)
+		{
+			int capacityValue = BreadthFirstSearch(capacity, source, dest, neighbors, flowArray, parents, numVert);			
+			
+			if(capacityValue==0)
+			{
+				break;
+			}
+			
+			flow+=capacityValue;
+			
+			int temp = dest-1;
+			while(temp!=source-1)
+			{
+				int u = parents[temp];
+				flowArray[u][temp] += capacityValue;
+				flowArray[temp][u] -= capacityValue;
+				temp = u;
+			}
+		}
+		
+		return flow;
+	}
+	
+	
+	
+	public static int BreadthFirstSearch(int[][] C, int s, int t, 
+			ArrayList<LinkedList<Integer>> E,
+			int[][] F, int[] P, int numVert)
+	{
+		int[] M = new int[numVert];
+		
+		for(int i=0; i<M.length; i++)
+		{
+			M[i] = Integer.MAX_VALUE;
+		}
+
+		
+		for(int i=0; i<numVert; i++)
+		{
+			P[i] = -1;
+		}
+		
+		P[s-1] = -2; //Making sure source is easily identified.
+		M[s-1] = Integer.MAX_VALUE;
+		
+		final Queue<Integer> Q = new ArrayDeque<Integer>();
+		Q.add(s-1); //The -1 is to adjust from 1 index to 0 index
+			
+		while(Q.size()>0)
+		{
+			int u = Q.remove();
+						
+			for(int v:E.get(u))
+			{	
+				if(C[u][v] > F[u][v] && P[v]==-1)
+				{
+					P[v] = u;
+					M[v] = Math.min(M[u],(C[u][v] - F[u][v]));
+					
+					if(v!=t-1)
+					{
+						Q.add(v);
+					}
+					else
+					{
+						return M[t-1];
+					}
+				}
+			}
+		}
+		
+		return 0;
+	}
+
+}
