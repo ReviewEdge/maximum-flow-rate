@@ -1,6 +1,5 @@
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.lang.reflect.Array;
 import java.util.*;
 
 public class MaxFlowAlgorithms {
@@ -72,28 +71,36 @@ public class MaxFlowAlgorithms {
          System.out.println();
 
          **/
+//        System.out.println(timeAlgorithms(10, 2, 5));
+
+
 
         StringBuilder outStrDinic = new StringBuilder("Size\\Density, 20%, 33%, 50%\n");
         StringBuilder outStrEK = new StringBuilder("Size\\Density, 20%, 33%, 50%\n");
 
         int size = 40;
-        for(int i = 0; i < 5; i++) {
-            ArrayList<String> output = new ArrayList<>();
+        for(int i = 0; i < 4; i++) {
             size *= 2;
-            outStrDinic.append(size);
-            outStrEK.append(size);
 
+            for(int j  = 0; j < 20; j++) {
+                ArrayList<String> output = new ArrayList<>();
+                outStrDinic.append(size);
+                outStrEK.append(size);
 
-            output.add(timeAlgorithms(size, (size / 5), 5));
-            output.add(timeAlgorithms(size, (size / 3), 5));
-            output.add(timeAlgorithms(size, (size / 2), 5));
-            for(String s: output) {
-                String[] sArr = s.split(":");
-                outStrDinic.append(",").append(sArr[0]);
-                outStrEK.append(",").append(sArr[1]);
+                output.add(timeAlgorithms(size, (size / 5), 1));
+                output.add(timeAlgorithms(size, (size / 3), 1));
+                output.add(timeAlgorithms(size, (size / 2), 1));
+//            output.add(timeAlgorithms(size, (size), 5));
+
+                for (String s : output) {
+                    String[] sArr = s.split(":");
+                    outStrDinic.append(",").append(sArr[0]);
+                    outStrEK.append(",").append(sArr[1]);
+                }
+                outStrDinic.append("\n");
+                outStrEK.append("\n");
+
             }
-            outStrDinic.append("\n");
-            outStrEK.append("\n");
         }
 
         try{
@@ -149,35 +156,37 @@ public class MaxFlowAlgorithms {
         for(int i = 0; i < repetitions; i++){
             ArrayList<ArrayList<Edge>> E = generateE(size, density, 100);
             ArrayList<Integer> V = generateV(size);
-//            Edges[] paths = generatePaths(E);
+            ArrayList<LinkedList<Integer>> neighbors = generateNeighbors(E);
+            int[][] cap = generateCapacity(E);
             dt += timeDinics(E,V,1,size);
-//            ekt += timeEdmundsKarp(paths, 1, size, size);
-            //TimeEK
+            ekt += timeEdmundsKarp(cap, 1, size, neighbors, size);
         }
         System.out.println("Dinic's for Size: " + size + ", Density: " + density);
         System.out.println(dt/repetitions);
-//        System.out.println("Edmonds-Karp for Size: " + size + ", Density: " + density);
-//        System.out.println(ekt/repetitions);
+        System.out.println("Edmonds-Karp for Size: " + size + ", Density: " + density);
+        System.out.println(ekt/repetitions);
         return (dt/repetitions) + ":" + ekt/repetitions;
     }
 
     public static float timeDinics(ArrayList<ArrayList<Edge>> E, ArrayList<Integer> V, int s, int t){
 
+        DinicsFlowRate dmfr = new DinicsFlowRate(V,E);
         float startTime = System.nanoTime();
-        runDinics(V, E, s, t);
+        dmfr.maxFlowRate(s,t);
+        //runDinics(V, E, s, t);
         float endTime = System.nanoTime();
 
         return (endTime - startTime) / nanoScaling;
     }
 
-//    public static float timeEdmundsKarp(Edges[] paths, int s, int t, int vSize){
-//
-//        float startTime = System.nanoTime();
-//        EKsort(paths, s, t, vSize);
-//        float endTime = System.nanoTime();
-//
-//        return (endTime - startTime) / 1000000000;
-//    }
+    public static float timeEdmundsKarp(int[][] cap, int s, int t, ArrayList<LinkedList<Integer>> N, int vSize){
+
+        float startTime = System.nanoTime();
+        EdmondsKarpFlow.EdmondsKarp(cap, s, t, N, vSize);
+        float endTime = System.nanoTime();
+
+        return (endTime - startTime) / nanoScaling;
+    }
 
     public static ArrayList<ArrayList<Edge>> generateE(int size, int connectivity, int maxCapacity){
         //Creating the adjacency list
@@ -199,21 +208,30 @@ public class MaxFlowAlgorithms {
         return E;
     }
 
-//    public static Edges[] generatePaths(ArrayList<ArrayList<Edge>> E){
-//        int numEdges = 0;
-//        for(ArrayList<Edge> list: E){
-//            numEdges += list.size();
-//        }
-//        Edges[] paths = new Edges[numEdges];
-//
-//        int i = 0;
-//        for(ArrayList<Edge> list: E){
-//            for(Edge e: list){
-//                paths[i] = new Edges(e.start, e.end, e.capacity);
-//            }
-//        }
-//        return paths;
-//    }
+    public static ArrayList<LinkedList<Integer>> generateNeighbors(ArrayList<ArrayList<Edge>> E){
+
+        ArrayList<LinkedList<Integer>> N = new ArrayList<>();
+        for(int i = 0; i <= E.size(); i++){
+            N.add(new LinkedList<>());
+        }
+
+        for(int i = 1; i < E.size(); i++){
+            for(Edge e: E.get(i)){
+                N.get(i-1).add(e.end-1);
+            }
+        }
+        return N;
+    }
+
+    public static int[][] generateCapacity(ArrayList<ArrayList<Edge>> E){
+        int[][] cap = new int[E.size()][E.size()];
+        for(ArrayList<Edge> list: E){
+            for(Edge e: list){
+                cap[e.start-1][e.end-1] = e.capacity;
+            }
+        }
+        return cap;
+    }
 
     public static ArrayList<ArrayList<Edge>> cloneGraph(ArrayList<ArrayList<Edge>> E){
         ArrayList<ArrayList<Edge>> F = new ArrayList<>();
